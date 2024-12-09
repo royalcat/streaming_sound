@@ -1,0 +1,6 @@
+[submodule "src/miniaudio"]
+	path = src/miniaudio
+	url = https://github.com/mackron/miniaudio
+[submodule "src/milo"]
+	path = src/milo
+	url = https://github.com/DaniilAlpha/milo
