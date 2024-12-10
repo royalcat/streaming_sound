@@ -1,10 +1,8 @@
 #include "../include/recorder.h"
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "../miniaudio/extras/miniaudio_split/miniaudio.h"
 

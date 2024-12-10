@@ -1,11 +1,8 @@
 #include "../include/player.h"
 
-#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "../miniaudio/extras/miniaudio_split/miniaudio.h"
 
@@ -83,7 +80,7 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
       ma_device_config_init(ma_device_type_playback);
   device_config.playback.format = ma_format_f32;
   device_config.playback.channels = channel_count;
-  device_config.noClip = true;
+  device_config.noClip = MA_TRUE;
   device_config.performanceProfile = ma_performance_profile_low_latency;
   device_config.periodSizeInMilliseconds = 20;
   device_config.sampleRate = sample_rate;
@@ -100,7 +97,9 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
            -1;
 
   if (self->device.playback.format != ma_format_f32) {
-    return error("miniaudio failed to initialize device with supported format!"), -1;
+    return error(
+               "miniaudio failed to initialize device with supported format!"),
+           -1;
   }
 
   self->bytes_per_frame = ma_get_bytes_per_frame(
