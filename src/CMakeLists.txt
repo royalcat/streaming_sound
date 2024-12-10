@@ -75,9 +75,9 @@ elseif(EMSCRIPTEN)
     )
 endif()
 
-if(ANDROID)
-    target_link_libraries(${MAIN_LIB} OpenSLES log)
-endif()
+# if(ANDROID)
+#     target_link_libraries(${MAIN_LIB} OpenSLES log)
+# endif()
 
 if(NOT MSVC)
     target_compile_options(streaming_sound PRIVATE -W -Wall -Wextra -Wformat -Wno-unused-function)
