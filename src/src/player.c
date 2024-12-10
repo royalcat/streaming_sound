@@ -16,7 +16,7 @@
 struct StreamPlayer {
   ma_device device;
   ma_pcm_rb rb;
-  ma_pthread_mutex_t mutex;
+  ma_mutex mutex;
   ma_uint32 bytes_per_frame;
 };
 
@@ -66,11 +66,15 @@ StreamPlayer *stream_player_alloc() { return malloc(sizeof(StreamPlayer)); }
 
 int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
                        uint32_t const sample_rate, const char *stream_name) {
-  ma_mutex_init(&self->mutex);
+  ma_result r;
+
+  r = ma_mutex_init(&self->mutex);
+  if (r != MA_SUCCESS) {
+    return error("Failed to initialize mutex! Error code: %d", r), r;
+  }
 
   trace("init self: %p", self);
 
-  ma_result r;
   r = ma_pcm_rb_init(ma_format_f32, channel_count, 8192, NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
     return error("Failed to initialize ring buffer! Error code: %d", r), -1;

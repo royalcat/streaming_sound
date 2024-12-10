@@ -17,6 +17,7 @@ struct StreamRecorder {
   ma_device device;
   ma_uint32 bytes_per_frame;
   ma_pcm_rb rb;
+  ma_mutex mutex;
 
   DataAvalibleCallback data_avalible_callback;
 };
@@ -24,6 +25,7 @@ struct StreamRecorder {
 static void data_callback(ma_device *pDevice, void *_, const void *pInput,
                           ma_uint32 frameCount) {
   (void)_;
+  ma_result r;
   StreamRecorder *const self = pDevice->pUserData;
 
   trace("frame count: %d", frameCount);
@@ -31,7 +33,6 @@ static void data_callback(ma_device *pDevice, void *_, const void *pInput,
   ma_uint32 framesToWrite = frameCount;
   void *pWriteBuffer;
 
-  ma_result r;
   r = ma_pcm_rb_acquire_write(&self->rb, &framesToWrite, &pWriteBuffer);
   if (r != MA_SUCCESS) {
     error("Failed to acquire write buffer! Error code: %d", r);
@@ -75,15 +76,19 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
     return 0;
   }
 
+  ma_mutex_lock(&self->mutex);
+
   ma_uint32 avalibleFrames = framesToRead;
   void *pReadBuffer;
   ma_result r;
   r = ma_pcm_rb_acquire_read(&self->rb, &avalibleFrames, &pReadBuffer);
   if (r != MA_SUCCESS) {
+    ma_mutex_unlock(&self->mutex);
     return error("Failed to acquire read buffer! Error code: %d", r), -1;
   }
 
   if (avalibleFrames == 0) {
+    ma_mutex_unlock(&self->mutex);
     return warn("No data to read!"), 0;
   }
 
@@ -93,9 +98,11 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
 
   r = ma_pcm_rb_commit_read(&self->rb, avalibleFrames);
   if (r != MA_SUCCESS && r != MA_AT_END) {
+    ma_mutex_unlock(&self->mutex);
     return error("Failed to commit read buffer! Error code: %d", r), -1;
   }
 
+  ma_mutex_unlock(&self->mutex);
   return avalibleFrames;
 }
 
@@ -108,9 +115,15 @@ int stream_recorder_init(StreamRecorder *const self,
                          uint32_t const sample_rate,
                          uint32_t const period_size_frames,
                          DataAvalibleCallback const data_avalible_callback) {
+  ma_result r;
+
   self->data_avalible_callback = data_avalible_callback;
 
-  ma_result r;
+  r = ma_mutex_init(&self->mutex);
+  if (r != MA_SUCCESS) {
+    return error("Failed to initialize mutex! Error code: %d", r), r;
+  }
+
   r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_frames * 32,
                      NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
