@@ -1,13 +1,13 @@
-#include "../include/recorder.h"
+#include "recorder.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../miniaudio/extras/miniaudio_split/miniaudio.h"
+#include "miniaudio/extras/miniaudio_split/miniaudio.h"
 
 #define MILO_LVL MILO_DEFAULT_LVL
-#include "../milo/milo.h"
+#include "milo/milo.h"
 
 /*************
  ** private **
@@ -103,6 +103,7 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
   }
 
   ma_mutex_unlock(&self->mutex);
+
   return avalibleFrames;
 }
 
@@ -113,7 +114,7 @@ StreamRecorder *stream_recorder_alloc() {
 int stream_recorder_init(StreamRecorder *const self,
                          uint32_t const channel_count,
                          uint32_t const sample_rate,
-                         uint32_t const period_size_frames,
+                         uint32_t const period_size_in_frames,
                          DataAvalibleCallback const data_avalible_callback) {
   ma_result r;
 
@@ -124,7 +125,7 @@ int stream_recorder_init(StreamRecorder *const self,
     return error("Failed to initialize mutex! Error code: %d", r), r;
   }
 
-  r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_frames * 32,
+  r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_in_frames * 32,
                      NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
     return error("Failed to initialize ring buffer! Error code: %d", r), -1;
@@ -134,7 +135,7 @@ int stream_recorder_init(StreamRecorder *const self,
       ma_device_config_init(ma_device_type_capture);
   device_config.capture.format = ma_format_f32;
   device_config.capture.channels = channel_count;
-  device_config.periodSizeInFrames = period_size_frames;
+  device_config.periodSizeInFrames = period_size_in_frames;
   device_config.sampleRate = sample_rate;
   device_config.dataCallback = data_callback;
   device_config.pUserData = self;

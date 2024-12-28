@@ -8,38 +8,37 @@ class StreamPlayer {
     required int sampleRate,
     String? outputName,
   }) async {
-    final self = _bindings.stream_player_alloc();
+    final frameBuffer = framesPerBuffer(frameDuration, sampleRate);
 
-    final r = _bindings.stream_player_init(
+    final self = stream_player_alloc();
+
+    final r = stream_player_init(
       self,
       1,
       sampleRate,
+      frameBuffer,
       outputName?.toNativeUtf8().cast() ?? nullptr.cast(),
     );
     if (r != 0) {
       throw PlatformException("Failed to init the player (code: $r).");
     }
 
-    const needFirstFrames = 960 * 4;
-
+    final needFirstFrames = frameBuffer * 2;
     final firstFrameBufferCompleter = Completer<void>();
-
     var framesWritten = 0;
 
-    var bufSize = 960;
-    var buf = malloc.allocate<Void>(bufSize);
-
+    final buf = malloc.allocate<Void>(frameBuffer * SampleFormat.f32.bytesPerFrame);
     soundStream.listen(
       (event) {
-        final eventSize = event.lengthInBytes;
-        if (eventSize > bufSize) {
-          malloc.free(buf);
-          buf = malloc.allocate<Void>(eventSize);
-          bufSize = eventSize;
-        }
+        // final eventSize = event.lengthInBytes;
+        // if (eventSize > bufSize) {
+        //   malloc.free(buf);
+        //   buf = malloc.allocate<Void>(eventSize);
+        //   bufSize = eventSize;
+        // }
 
-        buf.cast<Float>().asTypedList(event.length).setAll(0, event);
-        final res = _bindings.stream_player_buffer_write(self, buf, eventSize);
+        buf.cast<Float>().asTypedList(frameBuffer).setAll(0, event);
+        final res = stream_player_buffer_write(self, buf, frameBuffer);
         if (res != 0) {
           throw PlatformException("Failed write to player buffer (code: $res).");
         }
@@ -51,17 +50,17 @@ class StreamPlayer {
       },
       onDone: () {
         malloc.free(buf);
-        final res = _bindings.stream_player_stop(self);
+        final res = stream_player_stop(self);
         if (res != 0) {
           throw PlatformException("Failed to stop the player (code: $res).");
         }
-        _bindings.stream_player_uninit(self);
+        stream_player_uninit(self);
       },
     );
 
     await firstFrameBufferCompleter.future;
 
-    final res = _bindings.stream_player_start(self);
+    final res = stream_player_start(self);
     if (res != 0) {
       throw PlatformException("Failed to start the player (code: $res).");
     }

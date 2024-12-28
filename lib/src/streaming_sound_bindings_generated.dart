@@ -8,217 +8,83 @@
 // ignore_for_file: type=lint
 import 'dart:ffi' as ffi;
 
-class StreamingSoundBindings {
-  /// Holds the symbol lookup function.
-  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-      _lookup;
+@ffi.Native<ffi.Pointer<StreamPlayer> Function()>()
+external ffi.Pointer<StreamPlayer> stream_player_alloc();
 
-  /// The symbols are looked up in [dynamicLibrary].
-  StreamingSoundBindings(ffi.DynamicLibrary dynamicLibrary)
-      : _lookup = dynamicLibrary.lookup;
+@ffi.Native<
+    ffi.Int Function(ffi.Pointer<StreamPlayer>, ffi.Uint32, ffi.Uint32,
+        ffi.Uint32, ffi.Pointer<ffi.Char>)>()
+external int stream_player_init(
+  ffi.Pointer<StreamPlayer> self,
+  int channel_count,
+  int sample_rate,
+  int period_size_in_frames,
+  ffi.Pointer<ffi.Char> stream_name,
+);
 
-  /// The symbols are looked up with [lookup].
-  StreamingSoundBindings.fromLookup(
-      ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-          lookup)
-      : _lookup = lookup;
+@ffi.Native<ffi.Void Function(ffi.Pointer<StreamPlayer>)>()
+external void stream_player_uninit(
+  ffi.Pointer<StreamPlayer> self,
+);
 
-  ffi.Pointer<StreamingPlayer> stream_player_alloc() {
-    return _stream_player_alloc();
-  }
+@ffi.Native<
+    ffi.Int Function(
+        ffi.Pointer<StreamPlayer>, ffi.Pointer<ffi.Void>, ffi.Uint32)>()
+external int stream_player_buffer_write(
+  ffi.Pointer<StreamPlayer> self,
+  ffi.Pointer<ffi.Void> data,
+  int framesToWrite,
+);
 
-  late final _stream_player_allocPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<StreamingPlayer> Function()>>(
-          'stream_player_alloc');
-  late final _stream_player_alloc = _stream_player_allocPtr
-      .asFunction<ffi.Pointer<StreamingPlayer> Function()>();
+@ffi.Native<ffi.Int Function(ffi.Pointer<StreamPlayer>)>()
+external int stream_player_start(
+  ffi.Pointer<StreamPlayer> self,
+);
 
-  int stream_player_init(
-    ffi.Pointer<StreamingPlayer> self,
-    int channel_count,
-    int sample_rate,
-    ffi.Pointer<ffi.Char> stream_name,
-  ) {
-    return _stream_player_init(
-      self,
-      channel_count,
-      sample_rate,
-      stream_name,
-    );
-  }
+@ffi.Native<ffi.Int Function(ffi.Pointer<StreamPlayer>)>()
+external int stream_player_stop(
+  ffi.Pointer<StreamPlayer> self,
+);
 
-  late final _stream_player_initPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int Function(ffi.Pointer<StreamingPlayer>, ffi.Uint32, ffi.Uint32,
-              ffi.Pointer<ffi.Char>)>>('stream_player_init');
-  late final _stream_player_init = _stream_player_initPtr.asFunction<
-      int Function(
-          ffi.Pointer<StreamingPlayer>, int, int, ffi.Pointer<ffi.Char>)>();
+@ffi.Native<ffi.Pointer<StreamRecorder> Function()>()
+external ffi.Pointer<StreamRecorder> stream_recorder_alloc();
 
-  void stream_player_uninit(
-    ffi.Pointer<StreamingPlayer> self,
-  ) {
-    return _stream_player_uninit(
-      self,
-    );
-  }
+@ffi.Native<
+    ffi.Int Function(ffi.Pointer<StreamRecorder>, ffi.Uint32, ffi.Uint32,
+        ffi.Uint32, DataAvalibleCallback)>()
+external int stream_recorder_init(
+  ffi.Pointer<StreamRecorder> self,
+  int channel_count,
+  int sample_rate,
+  int period_size_frames,
+  DataAvalibleCallback data_avalible_callback,
+);
 
-  late final _stream_player_uninitPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<StreamingPlayer>)>>(
-      'stream_player_uninit');
-  late final _stream_player_uninit = _stream_player_uninitPtr
-      .asFunction<void Function(ffi.Pointer<StreamingPlayer>)>();
+@ffi.Native<
+    ffi.Int Function(
+        ffi.Pointer<StreamRecorder>, ffi.Pointer<ffi.Void>, ffi.Uint32)>()
+external int stream_recorder_read_buffer(
+  ffi.Pointer<StreamRecorder> self,
+  ffi.Pointer<ffi.Void> data,
+  int framesToRead,
+);
 
-  int stream_player_buffer_write(
-    ffi.Pointer<StreamingPlayer> self,
-    ffi.Pointer<ffi.Void> data,
-    int data_len,
-  ) {
-    return _stream_player_buffer_write(
-      self,
-      data,
-      data_len,
-    );
-  }
+@ffi.Native<ffi.Void Function(ffi.Pointer<StreamRecorder>)>()
+external void stream_recorder_uninit(
+  ffi.Pointer<StreamRecorder> self,
+);
 
-  late final _stream_player_buffer_writePtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int Function(ffi.Pointer<StreamingPlayer>, ffi.Pointer<ffi.Void>,
-              ffi.Uint32)>>('stream_player_buffer_write');
-  late final _stream_player_buffer_write =
-      _stream_player_buffer_writePtr.asFunction<
-          int Function(
-              ffi.Pointer<StreamingPlayer>, ffi.Pointer<ffi.Void>, int)>();
+@ffi.Native<ffi.Int Function(ffi.Pointer<StreamRecorder>)>()
+external int stream_recorder_start(
+  ffi.Pointer<StreamRecorder> self,
+);
 
-  int stream_player_start(
-    ffi.Pointer<StreamingPlayer> self,
-  ) {
-    return _stream_player_start(
-      self,
-    );
-  }
-
-  late final _stream_player_startPtr = _lookup<
-          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<StreamingPlayer>)>>(
-      'stream_player_start');
-  late final _stream_player_start = _stream_player_startPtr
-      .asFunction<int Function(ffi.Pointer<StreamingPlayer>)>();
-
-  int stream_player_stop(
-    ffi.Pointer<StreamingPlayer> self,
-  ) {
-    return _stream_player_stop(
-      self,
-    );
-  }
-
-  late final _stream_player_stopPtr = _lookup<
-          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<StreamingPlayer>)>>(
-      'stream_player_stop');
-  late final _stream_player_stop = _stream_player_stopPtr
-      .asFunction<int Function(ffi.Pointer<StreamingPlayer>)>();
-
-  ffi.Pointer<StreamRecorder> stream_recorder_alloc() {
-    return _stream_recorder_alloc();
-  }
-
-  late final _stream_recorder_allocPtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<StreamRecorder> Function()>>(
-          'stream_recorder_alloc');
-  late final _stream_recorder_alloc = _stream_recorder_allocPtr
-      .asFunction<ffi.Pointer<StreamRecorder> Function()>();
-
-  int stream_recorder_init(
-    ffi.Pointer<StreamRecorder> self,
-    int channel_count,
-    int sample_rate,
-    int period_size_frames,
-    DataAvalibleCallback data_avalible_callback,
-  ) {
-    return _stream_recorder_init(
-      self,
-      channel_count,
-      sample_rate,
-      period_size_frames,
-      data_avalible_callback,
-    );
-  }
-
-  late final _stream_recorder_initPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int Function(ffi.Pointer<StreamRecorder>, ffi.Uint32, ffi.Uint32,
-              ffi.Uint32, DataAvalibleCallback)>>('stream_recorder_init');
-  late final _stream_recorder_init = _stream_recorder_initPtr.asFunction<
-      int Function(
-          ffi.Pointer<StreamRecorder>, int, int, int, DataAvalibleCallback)>();
-
-  int stream_recorder_read_buffer(
-    ffi.Pointer<StreamRecorder> self,
-    ffi.Pointer<ffi.Void> data,
-    int framesToRead,
-  ) {
-    return _stream_recorder_read_buffer(
-      self,
-      data,
-      framesToRead,
-    );
-  }
-
-  late final _stream_recorder_read_bufferPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Int Function(ffi.Pointer<StreamRecorder>, ffi.Pointer<ffi.Void>,
-              ffi.Uint32)>>('stream_recorder_read_buffer');
-  late final _stream_recorder_read_buffer =
-      _stream_recorder_read_bufferPtr.asFunction<
-          int Function(
-              ffi.Pointer<StreamRecorder>, ffi.Pointer<ffi.Void>, int)>();
-
-  void stream_recorder_uninit(
-    ffi.Pointer<StreamRecorder> self,
-  ) {
-    return _stream_recorder_uninit(
-      self,
-    );
-  }
-
-  late final _stream_recorder_uninitPtr = _lookup<
-          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<StreamRecorder>)>>(
-      'stream_recorder_uninit');
-  late final _stream_recorder_uninit = _stream_recorder_uninitPtr
-      .asFunction<void Function(ffi.Pointer<StreamRecorder>)>();
-
-  int stream_recorder_start(
-    ffi.Pointer<StreamRecorder> self,
-  ) {
-    return _stream_recorder_start(
-      self,
-    );
-  }
-
-  late final _stream_recorder_startPtr = _lookup<
-          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<StreamRecorder>)>>(
-      'stream_recorder_start');
-  late final _stream_recorder_start = _stream_recorder_startPtr
-      .asFunction<int Function(ffi.Pointer<StreamRecorder>)>();
-
-  int stream_recorder_stop(
-    ffi.Pointer<StreamRecorder> self,
-  ) {
-    return _stream_recorder_stop(
-      self,
-    );
-  }
-
-  late final _stream_recorder_stopPtr = _lookup<
-          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<StreamRecorder>)>>(
-      'stream_recorder_stop');
-  late final _stream_recorder_stop = _stream_recorder_stopPtr
-      .asFunction<int Function(ffi.Pointer<StreamRecorder>)>();
-}
+@ffi.Native<ffi.Int Function(ffi.Pointer<StreamRecorder>)>()
+external int stream_recorder_stop(
+  ffi.Pointer<StreamRecorder> self,
+);
 
 final class StreamPlayer extends ffi.Opaque {}
-
-typedef StreamingPlayer = StreamPlayer;
 
 final class StreamRecorder extends ffi.Opaque {}
 

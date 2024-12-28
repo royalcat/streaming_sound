@@ -3,9 +3,12 @@ name: StreamingSoundBindings
 output: "lib/src/streaming_sound_bindings_generated.dart"
 headers:
   entry-points:
-    - "src/streaming_sound.h"
+    - "src/player.h"
+    - "src/recorder.h"
   include-directives:
-    - "src/include/*.h"
+    - "src/player.h"
+    - "src/recorder.h"
+ffi-native:
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

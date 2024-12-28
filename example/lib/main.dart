@@ -18,30 +18,29 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Stream<Float32List>? rec;
-  static const int sampleRate = 44100;
+  static const int sampleRate = 48000;
 
-  void startListening() {
+  void startEcho() {
     setState(() {
-      rec = streaming_sound.recordSoundStream(sampleRate: sampleRate);
+      rec = streaming_sound.recordSoundStream<Float32List>(sampleRate: sampleRate);
     });
 
-    streaming_sound.playSoundStream(rec!, sampleRate: sampleRate);
+    Future.delayed(const Duration(seconds: 1), () {
+      streaming_sound.playSoundStream(rec!, sampleRate: sampleRate);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Native Packages'),
-        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               ElevatedButton(
-                onPressed: startListening,
-                child: const Text('Start Listening'),
+                onPressed: startEcho,
+                child: const Text('Start Echo'),
               ),
             ],
           ),
