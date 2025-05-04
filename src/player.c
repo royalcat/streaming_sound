@@ -20,8 +20,8 @@ struct StreamPlayer {
   ma_uint32 bytes_per_frame;
 };
 
-static void player_data_callback(ma_device *pDevice, void *pOutput, const void *pInput,
-                          ma_uint32 frameCount) {
+static void player_data_callback(ma_device *pDevice, void *pOutput,
+                                 const void *pInput, ma_uint32 frameCount) {
 
   (void)pInput;
   StreamPlayer *const self = pDevice->pUserData;

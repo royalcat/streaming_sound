@@ -22,8 +22,8 @@ struct StreamRecorder {
   DataAvalibleCallback data_avalible_callback;
 };
 
-static void recorder_data_callback(ma_device *pDevice, void *_, const void *pInput,
-                          ma_uint32 frameCount) {
+static void recorder_data_callback(ma_device *pDevice, void *_,
+                                   const void *pInput, ma_uint32 frameCount) {
   (void)_;
   ma_result r;
   StreamRecorder *const self = pDevice->pUserData;
@@ -56,7 +56,8 @@ static void recorder_data_callback(ma_device *pDevice, void *_, const void *pInp
   // void *pReadBuffer = malloc(frameCount * self->bytes_per_frame);
   // memcpy(pReadBuffer, pInput, frameCount * self->bytes_per_frame);
 
-  // self->dart_recorder_data_callback(pInput, frameCount * self->bytes_per_frame);
+  // self->dart_recorder_data_callback(pInput, frameCount *
+  // self->bytes_per_frame);
 }
 
 /************
