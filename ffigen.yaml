@@ -1,11 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/dart-lang/native/refs/heads/main/pkgs/ffigen/ffigen.schema.json
 # Run with `dart run ffigen --config ffigen.yaml`.
 name: StreamingSoundBindings
+description: |
+  Bindings for `src/streaming_sound.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
 output: "lib/src/streaming_sound_bindings_generated.dart"
 headers:
   entry-points:
     - "src/streaming_sound.h"
+    - "src/recorder.h"
+    - "src/player.h"
   include-directives:
-    - "src/include/*.h"
+    - "src/streaming_sound.h"
+    - "src/recorder.h"
+    - "src/player.h"
 preamble: |
   // ignore_for_file: always_specify_types
   // ignore_for_file: camel_case_types

@@ -3,22 +3,22 @@ part of 'stream_sound_ffi.dart';
 typedef _DataCallback = Void Function();
 
 class StreamRecorder {
-  StreamRecorder();
+  final int sampleRate;
+  final SampleFormat sampleFormat;
 
-  Stream<Float32List> record({required int sampleRate}) {
+  const StreamRecorder({required this.sampleRate, required this.sampleFormat});
+
+  Stream<Uint8List> record() {
     final self = _bindings.stream_recorder_alloc();
 
-    const frameDuration = Duration(milliseconds: 20);
-    const bytesPerFrame = 4;
-    final framesPerBuffer = frameDuration.inMilliseconds * sampleRate ~/ 1000;
+    final frameBuffer = framesPerBuffer(frameDuration, sampleRate);
+    final buffer = malloc.allocate<Uint8>(frameBuffer * sampleFormat.bytesPerFrame);
 
-    final buffer = malloc.allocate<Float>(framesPerBuffer * bytesPerFrame);
-
-    final out = StreamController<Float32List>();
+    final out = StreamController<Uint8List>();
 
     out.onListen = () {
       final dataAvalibleCallback = NativeCallable<_DataCallback>.listener(() {
-        final n = _bindings.stream_recorder_read_buffer(self, buffer.cast<Void>(), framesPerBuffer);
+        final n = _bindings.stream_recorder_read_buffer(self, buffer.cast<Void>(), frameBuffer);
         if (n == -1) {
           throw PlatformException("Failed to read buffer from the recorder (code: $n).");
         }
@@ -27,11 +27,11 @@ class StreamRecorder {
           return;
         }
 
-        out.add(Float32List.fromList(buffer.asTypedList(n)));
+        out.add(Uint8List.fromList(buffer.asTypedList(n * sampleFormat.bytesPerFrame)));
       });
 
       var r = _bindings.stream_recorder_init(
-          self, 1, sampleRate, framesPerBuffer, dataAvalibleCallback.nativeFunction);
+          self, 1, sampleRate, frameBuffer, dataAvalibleCallback.nativeFunction);
       if (r != 0) {
         throw PlatformException("Failed to init the recorder (code: $r).");
       }

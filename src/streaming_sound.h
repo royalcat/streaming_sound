@@ -1,2 +1,2 @@
-#include "include/player.h"
-#include "include/recorder.h"
+#include "player.h"
+#include "recorder.h"

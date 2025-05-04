@@ -1,13 +1,13 @@
-#include "../include/player.h"
+#include "streaming_sound.h"
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../miniaudio/extras/miniaudio_split/miniaudio.h"
+#include "miniaudio/extras/miniaudio_split/miniaudio.h"
 
 #define MILO_LVL MILO_DEFAULT_LVL
-#include "../milo/milo.h"
+#include "milo/milo.h"
 
 /*************
  ** private **
@@ -20,7 +20,7 @@ struct StreamPlayer {
   ma_uint32 bytes_per_frame;
 };
 
-static void data_callback(ma_device *pDevice, void *pOutput, const void *pInput,
+static void player_data_callback(ma_device *pDevice, void *pOutput, const void *pInput,
                           ma_uint32 frameCount) {
 
   (void)pInput;
@@ -65,7 +65,9 @@ static void data_callback(ma_device *pDevice, void *pOutput, const void *pInput,
 StreamPlayer *stream_player_alloc() { return malloc(sizeof(StreamPlayer)); }
 
 int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
-                       uint32_t const sample_rate, const char *stream_name) {
+                       uint32_t const sample_rate,
+                       uint32_t const period_size_in_frames,
+                       const char *stream_name) {
   ma_result r;
 
   r = ma_mutex_init(&self->mutex);
@@ -75,7 +77,8 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
 
   trace("init self: %p", self);
 
-  r = ma_pcm_rb_init(ma_format_f32, channel_count, 8192, NULL, NULL, &self->rb);
+  r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_in_frames * 32,
+                     NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
     return error("Failed to initialize ring buffer! Error code: %d", r), -1;
   }
@@ -85,10 +88,10 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
   device_config.playback.format = ma_format_f32;
   device_config.playback.channels = channel_count;
   device_config.noClip = MA_TRUE;
-  device_config.performanceProfile = ma_performance_profile_low_latency;
-  device_config.periodSizeInMilliseconds = 20;
+  device_config.performanceProfile = ma_performance_profile_conservative;
+  device_config.periodSizeInFrames = period_size_in_frames;
   device_config.sampleRate = sample_rate;
-  device_config.dataCallback = data_callback;
+  device_config.dataCallback = player_data_callback;
   device_config.pUserData = self;
 
 #ifdef MA_ENABLE_PULSEAUDIO
@@ -119,12 +122,12 @@ void stream_player_uninit(StreamPlayer *const self) {
 }
 
 int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
-                               const uint32_t dataSize) {
+                               const uint32_t framesToWrite) {
   trace("write self: %p", self);
 
   trace("write bytes_per_frame: %d", self->bytes_per_frame);
 
-  ma_uint32 framesToWrite = dataSize / self->bytes_per_frame;
+  ma_uint32 sizeInFrames = framesToWrite;
 
   if (self->device.playback.format != ma_format_f32) {
     return error("Unsupported format!"), -1;
@@ -144,26 +147,24 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
 
   void *pWriteBuffer;
   ma_result r;
-  r = ma_pcm_rb_acquire_write(&self->rb, &framesToWrite, &pWriteBuffer);
+  r = ma_pcm_rb_acquire_write(&self->rb, &sizeInFrames, &pWriteBuffer);
   if (r != MA_SUCCESS) {
     ma_mutex_unlock(&self->mutex);
     return error("Failed to acquire write buffer! Error code: %d", r), -1;
   }
 
-  trace("write buffer framesToWrite: %d", framesToWrite);
+  trace("write buffer framesToWrite: %d", sizeInFrames);
 
-  memcpy(pWriteBuffer, data, framesToWrite * self->bytes_per_frame);
+  memcpy(pWriteBuffer, data, sizeInFrames * self->bytes_per_frame);
 
-  r = ma_pcm_rb_commit_write(&self->rb, framesToWrite);
+  r = ma_pcm_rb_commit_write(&self->rb, sizeInFrames);
   if (r != MA_SUCCESS) {
     ma_mutex_unlock(&self->mutex);
     return error("Failed to commit write buffer! Error code: %d", r), -1;
   }
 
   ma_mutex_unlock(&self->mutex);
-  return trace("successfully written %d bytes",
-               framesToWrite * self->bytes_per_frame),
-         0;
+  return trace("successfully written %d frames", sizeInFrames), 0;
 }
 
 int stream_player_start(StreamPlayer *const self) {

@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
 
 import 'package:streaming_sound/streaming_sound.dart' as streaming_sound;
@@ -20,7 +22,11 @@ class _MyAppState extends State<MyApp> {
   Stream<Float32List>? rec;
   static const int sampleRate = 44100;
 
-  void startListening() {
+  void startListening() async {
+    if (Platform.isAndroid) {
+      await Permission.microphone.request();
+    }
+
     setState(() {
       rec = streaming_sound.recordSoundStream(sampleRate: sampleRate);
     });

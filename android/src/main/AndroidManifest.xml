@@ -1,3 +1,3 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.example.streaming_sound">
+  package="dev.royalcat.streaming_sound">
 </manifest>

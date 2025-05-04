@@ -1,14 +1,19 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:streaming_sound/src/streaming_sound_bindings_generated.dart';
+import 'package:streaming_sound/streaming_sound.dart';
 
 part 'stream_player.dart';
 part 'stream_recorder.dart';
+
+const frameDuration = Duration(milliseconds: 20);
+
+int framesPerBuffer(Duration frameDuration, int sampleRate) =>
+    frameDuration.inMilliseconds * sampleRate ~/ 1000;
 
 const String _libName = "streaming_sound";
 final _bindings = StreamingSoundBindings(() {

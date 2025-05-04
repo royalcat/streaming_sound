@@ -16,15 +16,17 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
 endif()
 
 # Sources
-file(GLOB_RECURSE MAIN_SOURCES 
-    streaming_sound.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio/extras/miniaudio_split/miniaudio.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/milo/milo.h
-)
+# file(GLOB_RECURSE MAIN_SOURCES 
+#    ${CMAKE_CURRENT_SOURCE_DIR}/*.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio/extras/miniaudio_split/miniaudio.c
+#    ${CMAKE_CURRENT_SOURCE_DIR}/milo/milo.h
+# )
 
 add_library(streaming_sound SHARED
-  ${MAIN_SOURCES}
+  "${CMAKE_CURRENT_SOURCE_DIR}/recorder.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/player.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/milo.c"
+  "${CMAKE_CURRENT_SOURCE_DIR}/miniaudio/extras/miniaudio_split/miniaudio.c"
 )
 
 set_target_properties(streaming_sound PROPERTIES
@@ -32,62 +34,7 @@ set_target_properties(streaming_sound PROPERTIES
   OUTPUT_NAME "streaming_sound"
 )
 
-target_compile_definitions(streaming_sound PRIVATE
-  $<$<CONFIG:Debug>:DEBUG_BUILD>
-)
-
 target_compile_definitions(streaming_sound PUBLIC DART_SHARED_LIB)
-
-target_compile_definitions(streaming_sound PRIVATE
-    # milo
-    MILO_DEFAULT_LVL=MILO_LVL_WARN
-    # miniaudio
-    MA_ENABLE_ONLY_SPECIFIC_BACKENDS
-    MA_NO_RESOURCE_MANAGER
-    # MA_DEBUG_OUTPUT
-)
-
-if(LINUX)
-    target_compile_definitions(streaming_sound PUBLIC
-        # pulseaudio have bad glitching/noise as stated by miniaudio documentation,
-        # it can be fixed on user size, but for simplicity we will just use alsa
-        MA_ENABLE_PULSEAUDIO
-        MA_ENABLE_JACK
-        MA_ENABLE_ALSA
-    )
-elseif(WIN32)
-    target_compile_definitions(streaming_sound PUBLIC
-        MA_ENABLE_WASAPI
-    )
-elseif(ANDROID)
-    target_compile_definitions(streaming_sound PUBLIC
-        MA_ENABLE_AAUDIO
-        # MA_ENABLE_OPENSL
-    )
-elseif(APPLE)
-    target_compile_definitions(streaming_sound PUBLIC
-        MA_ENABLE_COREAUDIO
-    )
-elseif(EMSCRIPTEN)
-    target_compile_definitions(streaming_sound PRIVATE
-        MA_ENABLE_WEBAUDIO
-        MA_ENABLE_AUDIO_WORKLETS
-    )
-endif()
-
-# if(ANDROID)
-#     target_link_libraries(${MAIN_LIB} OpenSLES log)
-# endif()
-
-if(NOT MSVC)
-    target_compile_options(streaming_sound PRIVATE -W -Wall -Wextra -Wformat -Wno-unused-function)
-else()
-    target_compile_options(streaming_sound PRIVATE -W3)
-endif()
-
-if(NOT MSVC)
-    set(COMPILE_AND_LINK_OPTS -O3)
-endif()
 
 if (ANDROID)
   # Support Android 15 16k page size
