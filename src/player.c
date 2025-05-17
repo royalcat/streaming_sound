@@ -109,6 +109,9 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
            -1;
   }
 
+  info("Using backend: %s",
+       ma_get_backend_name(self->device.pContext->backend));
+
   self->bytes_per_frame = ma_get_bytes_per_frame(
       self->device.playback.format, self->device.playback.channels);
 
@@ -137,7 +140,6 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   }
 
   trace("write framesToWrite: %d", framesToWrite);
-  trace("write dataSize: %d", dataSize);
 
   if (framesToWrite == 0) {
     return warn("No data to write!"), 0;

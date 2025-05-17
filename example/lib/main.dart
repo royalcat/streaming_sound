@@ -23,7 +23,7 @@ class _MyAppState extends State<MyApp> {
   static const int sampleRate = 44100;
 
   void startListening() async {
-    if (Platform.isAndroid) {
+    if (Platform.isAndroid || Platform.isIOS) {
       await Permission.microphone.request();
     }
 

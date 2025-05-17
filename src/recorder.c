@@ -29,6 +29,7 @@ static void recorder_data_callback(ma_device *pDevice, void *_,
   StreamRecorder *const self = pDevice->pUserData;
 
   trace("frame count: %d", frameCount);
+  trace("pInput value: %d", *((uint64_t*)pInput+16));
 
   ma_uint32 framesToWrite = frameCount;
   void *pWriteBuffer;
@@ -145,6 +146,9 @@ int stream_recorder_init(StreamRecorder *const self,
   if (r != MA_SUCCESS)
     return error("miniaudio device initialization error! Error code: %d", r),
            -1;
+
+  info("Using backend: %s",
+       ma_get_backend_name(self->device.pContext->backend));
 
   self->bytes_per_frame = ma_get_bytes_per_frame(self->device.capture.format,
                                                  self->device.capture.channels);
