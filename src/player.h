@@ -7,7 +7,7 @@
 
 EXPORT typedef struct StreamPlayer StreamPlayer;
 
-EXPORT StreamPlayer *stream_player_alloc(void);
+EXPORT StreamPlayer *stream_player_alloc();
 
 EXPORT int stream_player_init(StreamPlayer *const self,
                               uint32_t const channel_count,

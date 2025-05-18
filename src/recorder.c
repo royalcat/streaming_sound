@@ -93,7 +93,9 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
 
   if (avalibleFrames == 0) {
     ma_mutex_unlock(&self->mutex);
-    return warn("No data to read!"), 0;
+
+    warn("No data to read!");
+    return 0;
   }
 
   trace("read buffer framesToRead: %d", avalibleFrames);
@@ -113,7 +115,7 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
   return avalibleFrames;
 }
 
-StreamRecorder *stream_recorder_alloc() {
+StreamRecorder *stream_recorder_alloc(void) {
   return malloc(sizeof(StreamRecorder));
 }
 
@@ -162,7 +164,8 @@ int stream_recorder_init(StreamRecorder *const self,
 
   trace("recorder bytesPerFrame: %d", self->bytes_per_frame);
 
-  return info("recorder initialized"), 0;
+  info("recorder initialized");
+  return 0;
 }
 
 void stream_recorder_uninit(StreamRecorder *const self) {

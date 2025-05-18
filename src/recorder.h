@@ -6,7 +6,7 @@
 #include "export.h"
 
 EXPORT typedef struct StreamRecorder StreamRecorder;
-EXPORT typedef void (*DataAvalibleCallback)();
+EXPORT typedef void (*DataAvalibleCallback)(void);
 
 EXPORT StreamRecorder *stream_recorder_alloc(void);
 

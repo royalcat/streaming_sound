@@ -62,7 +62,7 @@ static void player_data_callback(ma_device *pDevice, void *pOutput,
  ** public **
  ************/
 
-StreamPlayer *stream_player_alloc() { return malloc(sizeof(StreamPlayer)); }
+StreamPlayer *stream_player_alloc(void) { return malloc(sizeof(StreamPlayer)); }
 
 int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
                        uint32_t const sample_rate,
@@ -119,7 +119,9 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
 
   trace("player bytesPerFrame: %d", self->bytes_per_frame);
 
-  return info("player initialized"), 0;
+  info("player initialized");
+
+  return 0;
 }
 
 void stream_player_uninit(StreamPlayer *const self) {
@@ -147,7 +149,8 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   trace("write framesToWrite: %d", framesToWrite);
 
   if (framesToWrite == 0) {
-    return warn("No data to write!"), 0;
+    warn("No data to write!");
+    return 0;
   }
 
   ma_mutex_lock(&self->mutex);
@@ -175,7 +178,9 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   }
 
   ma_mutex_unlock(&self->mutex);
-  return trace("successfully written %d frames", sizeInFrames), 0;
+
+  trace("successfully written %d frames", sizeInFrames);
+  return 0;
 }
 
 int stream_player_start(StreamPlayer *const self) {
