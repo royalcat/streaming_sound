@@ -29,7 +29,7 @@ static void recorder_data_callback(ma_device *pDevice, void *_,
   StreamRecorder *const self = pDevice->pUserData;
 
   trace("frame count: %d", frameCount);
-  trace("pInput value: %d", *((uint64_t*)pInput+16));
+  trace("pInput value: %d", *((uint64_t *)pInput + 16));
 
   ma_uint32 framesToWrite = frameCount;
   void *pWriteBuffer;
@@ -86,7 +86,9 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
   r = ma_pcm_rb_acquire_read(&self->rb, &avalibleFrames, &pReadBuffer);
   if (r != MA_SUCCESS) {
     ma_mutex_unlock(&self->mutex);
-    return error("Failed to acquire read buffer! Error code: %d", r), -1;
+
+    error("Failed to acquire read buffer! Error code: %d", r);
+    return -1;
   }
 
   if (avalibleFrames == 0) {
@@ -101,7 +103,9 @@ int stream_recorder_read_buffer(StreamRecorder *const self, void *const data,
   r = ma_pcm_rb_commit_read(&self->rb, avalibleFrames);
   if (r != MA_SUCCESS && r != MA_AT_END) {
     ma_mutex_unlock(&self->mutex);
-    return error("Failed to commit read buffer! Error code: %d", r), -1;
+
+    error("Failed to commit read buffer! Error code: %d", r);
+    return -1;
   }
 
   ma_mutex_unlock(&self->mutex);
@@ -124,13 +128,15 @@ int stream_recorder_init(StreamRecorder *const self,
 
   r = ma_mutex_init(&self->mutex);
   if (r != MA_SUCCESS) {
-    return error("Failed to initialize mutex! Error code: %d", r), r;
+    error("Failed to initialize mutex! Error code: %d", r);
+    return r;
   }
 
   r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_in_frames * 32,
                      NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
-    return error("Failed to initialize ring buffer! Error code: %d", r), -1;
+    error("Failed to initialize ring buffer! Error code: %d", r);
+    return -1;
   }
 
   ma_device_config device_config =
@@ -143,9 +149,10 @@ int stream_recorder_init(StreamRecorder *const self,
   device_config.pUserData = self;
 
   r = ma_device_init(NULL, &device_config, &self->device);
-  if (r != MA_SUCCESS)
-    return error("miniaudio device initialization error! Error code: %d", r),
-           -1;
+  if (r != MA_SUCCESS) {
+    error("miniaudio device initialization error! Error code: %d", r);
+    return -1;
+  }
 
   info("Using backend: %s",
        ma_get_backend_name(self->device.pContext->backend));
@@ -165,15 +172,19 @@ void stream_recorder_uninit(StreamRecorder *const self) {
 int stream_recorder_start(StreamRecorder *const self) {
   ma_result r = ma_device_start(&self->device);
   if (r != MA_SUCCESS) {
-    return error("Failed to start device! Error code: %d", r), -1;
+    error("Failed to start device! Error code: %d", r);
+    return -1;
   }
-  return info("recorder started"), 0;
+
+  info("recorder started");
+  return 0;
 }
 
 int stream_recorder_stop(StreamRecorder *const self) {
   ma_result r = ma_device_stop(&self->device);
   if (r != MA_SUCCESS) {
-    return error("Failed to stop device! Error code: %d", r), -1;
+    error("Failed to stop device! Error code: %d", r);
+    return -1;
   }
   return 0;
 }

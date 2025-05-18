@@ -72,7 +72,8 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
 
   r = ma_mutex_init(&self->mutex);
   if (r != MA_SUCCESS) {
-    return error("Failed to initialize mutex! Error code: %d", r), r;
+    error("Failed to initialize mutex! Error code: %d", r);
+    return r;
   }
 
   trace("init self: %p", self);
@@ -80,7 +81,8 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
   r = ma_pcm_rb_init(ma_format_f32, channel_count, period_size_in_frames * 32,
                      NULL, NULL, &self->rb);
   if (r != MA_SUCCESS) {
-    return error("Failed to initialize ring buffer! Error code: %d", r), -1;
+    error("Failed to initialize ring buffer! Error code: %d", r);
+    return -1;
   }
 
   ma_device_config device_config =
@@ -99,14 +101,14 @@ int stream_player_init(StreamPlayer *const self, uint32_t const channel_count,
 #endif
 
   r = ma_device_init(NULL, &device_config, &self->device);
-  if (r != MA_SUCCESS)
-    return error("miniaudio device initialization error! Error code: %d", r),
-           -1;
+  if (r != MA_SUCCESS) {
+    error("miniaudio device initialization error! Error code: %d", r);
+    return -1;
+  }
 
   if (self->device.playback.format != ma_format_f32) {
-    return error(
-               "miniaudio failed to initialize device with supported format!"),
-           -1;
+    error("miniaudio failed to initialize device with supported format!");
+    return -1;
   }
 
   info("Using backend: %s",
@@ -133,10 +135,13 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   ma_uint32 sizeInFrames = framesToWrite;
 
   if (self->device.playback.format != ma_format_f32) {
-    return error("Unsupported format!"), -1;
+    error("Unsupported format!");
+    return -1;
   }
+
   if (self->device.playback.channels != 1) {
-    return error("Unsupported channel count!"), -1;
+    error("Unsupported channel count!");
+    return -1;
   }
 
   trace("write framesToWrite: %d", framesToWrite);
@@ -152,7 +157,9 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   r = ma_pcm_rb_acquire_write(&self->rb, &sizeInFrames, &pWriteBuffer);
   if (r != MA_SUCCESS) {
     ma_mutex_unlock(&self->mutex);
-    return error("Failed to acquire write buffer! Error code: %d", r), -1;
+
+    error("Failed to acquire write buffer! Error code: %d", r);
+    return -1;
   }
 
   trace("write buffer framesToWrite: %d", sizeInFrames);
@@ -162,7 +169,9 @@ int stream_player_buffer_write(StreamPlayer *const self, const void *const data,
   r = ma_pcm_rb_commit_write(&self->rb, sizeInFrames);
   if (r != MA_SUCCESS) {
     ma_mutex_unlock(&self->mutex);
-    return error("Failed to commit write buffer! Error code: %d", r), -1;
+
+    error("Failed to commit write buffer! Error code: %d", r);
+    return -1;
   }
 
   ma_mutex_unlock(&self->mutex);
@@ -174,7 +183,8 @@ int stream_player_start(StreamPlayer *const self) {
 
   ma_result r = ma_device_start(&self->device);
   if (r != MA_SUCCESS) {
-    return error("Failed to start device! Error code: %d", r), -1;
+    error("Failed to start device! Error code: %d", r);
+    return -1;
   }
   return 0;
 }
@@ -182,7 +192,8 @@ int stream_player_start(StreamPlayer *const self) {
 int stream_player_stop(StreamPlayer *const self) {
   ma_result r = ma_device_stop(&self->device);
   if (r != MA_SUCCESS) {
-    return error("Failed to stop device! Error code: %d", r), -1;
+    error("Failed to stop device! Error code: %d", r);
+    return -1;
   }
   return 0;
 }
