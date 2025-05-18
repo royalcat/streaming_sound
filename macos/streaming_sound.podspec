@@ -28,6 +28,8 @@ A new Flutter FFI plugin project.
 
   s.dependency 'FlutterMacOS'
 
+  s.prepare_command = 'git submodule update --init --recursive'
+
   s.platform = :osx, '10.11'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
